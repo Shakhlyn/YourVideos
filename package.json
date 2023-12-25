@@ -1,6 +1,7 @@
 {
   "name": "yourvideos",
   "version": "1.0.0",
+  "type": "module",
   "description": "MERN-stack web app for showing and watching videos",
   "main": "index.js",
   "scripts": {
@@ -11,5 +12,8 @@
     "MERN"
   ],
   "author": "Shakhlyn",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
 }
