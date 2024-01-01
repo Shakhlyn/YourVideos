@@ -45,7 +45,13 @@ const userSchema = new mongoose.Schema(
     coverImage: {
       type: String,
     },
-    watchhistory: [
+    watchHistory: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Video",
+      },
+    ],
+    uploadedVideos: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Video",
@@ -69,6 +75,10 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password); // return will be either 'true' or 'false'
 };
+
+userSchema.index({ username: 1 });
+userSchema.index({ watchHistory: 1 });
+userSchema.index({ uploadedVideos: 1 });
 
 const User = mongoose.model("User", userSchema);
 export default User;

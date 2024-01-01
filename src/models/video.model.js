@@ -61,7 +61,7 @@ videoSchema.pre("save", async function (next) {
         slugExists = false; // Found a unique slug; break the loop
       } else {
         // Handle duplicate slug by appending a counter or a short random string
-        slug = `${originalSlug}-${counter}`; // Append a counter to the original slug
+        slug = `${slug}-${counter}`; // Append a counter to the original slug
         counter++;
       }
     }
@@ -71,6 +71,14 @@ videoSchema.pre("save", async function (next) {
 
   next();
 });
+
+videoSchema.index({ slug: 1 });
+videoSchema.index({ owner: 1 });
+videoSchema.index({ isPublished: 1 }); // 'isPublished' is used everytime we send query to show videos in the app.
+videoSchema.index({ isPublished: 1, slug: 1 });
+videoSchema.index({ isPublished: 1, owner: 1 });
+videoSchema.index({ isPublished: 1, owner: 1, slug: 1 });
+videoSchema.index({ isPublished: 1, owner: 1, views: 1, slug: 1 });
 
 const Video = mongoose.model("Video", videoSchema);
 export default Video;
