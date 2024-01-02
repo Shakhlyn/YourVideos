@@ -78,7 +78,7 @@ videoSchema.index({ isPublished: 1 }); // 'isPublished' is used everytime we sen
 videoSchema.index({ isPublished: 1, slug: 1 });
 videoSchema.index({ isPublished: 1, owner: 1 });
 videoSchema.index({ isPublished: 1, owner: 1, slug: 1 });
-videoSchema.index({ isPublished: 1, owner: 1, views: 1, slug: 1 });
+videoSchema.index({ isPublished: 1, owner: 1, views: 1 });
 
 const Video = mongoose.model("Video", videoSchema);
 export default Video;
