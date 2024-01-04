@@ -72,10 +72,14 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+// checking if the password is correct
 userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password); // return will be either 'true' or 'false'
 };
 
+// Define tokens
+
+// indexing
 userSchema.index({ username: 1 });
 userSchema.index({ watchHistory: 1 });
 userSchema.index({ uploadedVideos: 1 });
