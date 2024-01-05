@@ -46,7 +46,6 @@ export const register = catchAsync(async (req, res) => {
   }
 
   // check for image, cover photo
-  console.log(req.files);
   const avatarLocalPath = req.files?.avatar[0]?.path;
 
   if (!avatarLocalPath) {

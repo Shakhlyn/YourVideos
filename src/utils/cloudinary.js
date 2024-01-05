@@ -1,5 +1,11 @@
+import dotenv from "dotenv";
+
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
+
+dotenv.config({
+  path: "./.env",
+});
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -20,14 +26,12 @@ const uploadOnCloudinary = async (filePath) => {
     // after uploading the files, remove the file by 'unlinking'
     fs.unlinkSync(filePath);
 
-    // investigative reason: This must be deleted after seeing what is in this response.
-    console.log(response);
-
     return response;
   } catch (error) {
     // if uploading is failed, at first remove the unfinished along with corrupted files from the storage.
     fs.unlinkSync(filePath);
 
+    // and return null so that we can handle this errors where will use cloudinary
     return null;
   }
 };
