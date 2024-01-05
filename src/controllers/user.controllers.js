@@ -33,8 +33,9 @@ export const register = catchAsync(async (req, res) => {
     throw new ApiError(400, "All fields are required");
   }
 
-  // check if user already exists: username and email
+  // check if user(username and email) already exists. If exist, throw error
   const existingUser = await User.findOne({
+    // either username or email is found in the database, it will show the user.
     $or: [{ username }, { email }],
   });
 
@@ -45,7 +46,7 @@ export const register = catchAsync(async (req, res) => {
     );
   }
 
-  // check for image, cover photo
+  // check for avatar and cover photo
   const avatarLocalPath = req.files?.avatar[0]?.path;
 
   if (!avatarLocalPath) {
@@ -66,7 +67,13 @@ export const register = catchAsync(async (req, res) => {
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
   if (!avatar) {
-    throw new ApiError(400, "Avatar file is required");
+    // throw new ApiError(400, "Avatar file is required");
+
+    // Since, it is not, most probably, user's fault.
+    throw new ApiError(
+      500,
+      "Something went wrong. Please try registering again."
+    );
   }
 
   // create user object with create method
