@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import JWT from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema(
   {
@@ -80,7 +81,11 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 // Define tokens
 
 // indexing
+// indexes of 'username' and 'email' will help '$or' operator to find the user in short time.
+// Without this indexing, db will find from the whole collection
 userSchema.index({ username: 1 });
+userSchema.index({ email: 1 });
+
 userSchema.index({ watchHistory: 1 });
 userSchema.index({ uploadedVideos: 1 });
 

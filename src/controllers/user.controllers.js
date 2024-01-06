@@ -9,7 +9,7 @@ import ApiResponse from "../utils/apiResponse.js";
 // cloudinary
 import uploadOnCloudinary from "../utils/cloudinary.js";
 
-export const register = catchAsync(async (req, res) => {
+const register = catchAsync(async (req, res) => {
   /*
   STEPS: 
 1 - take input data from user
@@ -102,3 +102,63 @@ export const register = catchAsync(async (req, res) => {
     .status(201)
     .json(new ApiResponse(201, createdUser, "Registration successful"));
 });
+
+const login = catchAsync(async (req, res) => {
+  /*
+  STEPS:
+  1 - take data from user through req.body
+  2 - check if fields are not blank
+  3 - find the user with either username or email
+  4 - check if the given password is correct
+  5 - generate accessToken & refreshtoken; save the accessToken in the db
+  6 - optional, but useful -- set "req.user = user"
+  7 - send accessToken and refreshToken to the user through the cookie
+  */
+
+  // 1.take data
+  const { username, email, password } = req.body;
+
+  // 2. check if the fields are given
+  if (!username || !email) {
+    throw new ApiError(400, "Both fields are needed");
+  }
+
+  // 3. find the user
+  const user = await User.findOne({
+    $or: [{ username }, { email }],
+  });
+
+  if (!user) {
+    throw new ApiError(401, "Invalid user credentials");
+    // we don't want to give hint to the user, probably hacker, what is the problem.
+    // Hence, for both invalid user and password, we're sending the same code and message.
+  }
+
+  // 4. check if the password is correct
+  const isValidPassword = await user.isPasswordCorrect(password);
+
+  if (!isValidPassword) {
+    throw new ApiError(401, "Invalid user credentials");
+  }
+
+  // 5. Generate tokens
+
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  ); //before sending user info, we must remove 'password' and 'refreshToke' from the response
+
+  // 6. set req.user = loggedInUser
+
+  // 7. return the response
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        user: loggedInUser,
+      },
+      "Log-in is successful"
+    )
+  );
+});
+
+export { register, login };

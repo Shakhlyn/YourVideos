@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
+// We have to configure dotenv again, otherwise cloudinary can’ access environment variables.
 dotenv.config({
   path: "./.env",
 });
@@ -24,11 +25,15 @@ const uploadOnCloudinary = async (filePath) => {
     });
 
     // after uploading the files, remove the file by 'unlinking'
+
+    //it must be done before returning. Hence, ‘synchronous’.
     fs.unlinkSync(filePath);
 
     return response;
   } catch (error) {
     // if uploading is failed, at first remove the unfinished along with corrupted files from the storage.
+
+    //it must be done before returning. Hence, ‘synchronous’.
     fs.unlinkSync(filePath);
 
     // and return null so that we can handle this errors where will use cloudinary
