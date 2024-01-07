@@ -120,8 +120,8 @@ const login = catchAsync(async (req, res) => {
   const { username, email, password } = req.body;
 
   // 2. check if the fields are given
-  if (!username || !email) {
-    throw new ApiError(400, "Both fields are needed");
+  if (!username && !email) {
+    throw new ApiError(400, "Username or email is needed");
   }
 
   // 3. find the user
