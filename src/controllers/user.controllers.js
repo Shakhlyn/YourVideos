@@ -157,28 +157,15 @@ const login = catchAsync(async (req, res) => {
   const cookieOptions = {
     httpOnly: true,
     secure: true, // For the development case, we cannot send request if 'secure' is true.
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 3600 * 1000
+    ),
   };
-
-  // const cookieOptionsForAccesstoken = {
-  //   expires: new Date(
-  //     Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 3600 * 1000
-  //   ),
-  //   httpOnly: true,
-  //   // secure: true,    // For the development case, we cannot send request if 'secure' is true.
-  // };
-
-  // const cookieOptionsForRefreshToken = {
-  //   expires: new Date(
-  //     Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 3600 * 1000
-  //   ),
-  //   httpOnly: true,
-  // secure: true,    // For the development case, we cannot send request if 'secure' is true.
-  // };
 
   // 6. return the response
   return res
     .status(200)
-    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("accessToken", accessToken, cookieOptions) //see res.cookie of express for details
     .cookie("refreshToken", refreshToken, cookieOptions)
     .json(
       new ApiResponse(
