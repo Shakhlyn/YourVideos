@@ -21,6 +21,8 @@ const register = catchAsync(async (req, res) => {
 7 - after creating the user object, remove password and refreshtoken before sending the response data to the user.
 8 - check for creation. If not created, we will get null
 9 - send response if everything is ok.
+
+[N.B.: We didn't send a 'cookie' to prevent user log-in during registration.]
  */
 
   // take input data from user
@@ -111,8 +113,7 @@ const login = catchAsync(async (req, res) => {
   3 - find the user with either username or email
   4 - check if the given password is correct
   5 - generate accessToken & refreshtoken; save the accessToken in the db
-  6 - optional, but useful -- set "req.user = user"
-  7 - send accessToken and refreshToken to the user through the cookie
+  6 - send accessToken and refreshToken to the user through the cookie
   */
 
   // 1.take data
@@ -142,23 +143,52 @@ const login = catchAsync(async (req, res) => {
   }
 
   // 5. Generate tokens
+  const refreshToken = user.generateRefreshToken();
+  const accessToken = user.generateAccessToken();
 
+  user.refreshToken = refreshToken;
+  await user.save({ validateBeforeSave: false });
+
+  //before sending user info, we must remove 'password' and 'refreshToke' from the response
   const loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
-  ); //before sending user info, we must remove 'password' and 'refreshToke' from the response
-
-  // 6. set req.user = loggedInUser
-
-  // 7. return the response
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      {
-        user: loggedInUser,
-      },
-      "Log-in is successful"
-    )
   );
+
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true, // For the development case, we cannot send request if 'secure' is true.
+  };
+
+  // const cookieOptionsForAccesstoken = {
+  //   expires: new Date(
+  //     Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 3600 * 1000
+  //   ),
+  //   httpOnly: true,
+  //   // secure: true,    // For the development case, we cannot send request if 'secure' is true.
+  // };
+
+  // const cookieOptionsForRefreshToken = {
+  //   expires: new Date(
+  //     Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 3600 * 1000
+  //   ),
+  //   httpOnly: true,
+  // secure: true,    // For the development case, we cannot send request if 'secure' is true.
+  // };
+
+  // 6. return the response
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user: loggedInUser,
+        },
+        "Log-in is successful"
+      )
+    );
 });
 
 export { register, login };

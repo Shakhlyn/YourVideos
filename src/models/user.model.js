@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import JWT from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema(
   {
@@ -79,6 +79,37 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 };
 
 // Define tokens
+
+userSchema.methods.generateRefreshToken = function () {
+  try {
+    return jwt.sign({ _id: this._id }, process.env.JWT_REFRESH_TOKEN_SECRET, {
+      expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN,
+    });
+  } catch (error) {
+    console.error("Error generating refresh token:", error);
+    throw new Error("Refresh token generation failed");
+  }
+};
+
+userSchema.methods.generateAccessToken = function () {
+  try {
+    return jwt.sign(
+      {
+        _id: this._id,
+        username: this.username,
+        fullName: this.fullName,
+        email: this.email,
+      },
+      process.env.JWT_ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+      }
+    );
+  } catch (error) {
+    console.error("Error generating access token:", error);
+    throw new Error("Access token generation failed");
+  }
+};
 
 // indexing
 // indexes of 'username' and 'email' will help '$or' operator to find the user in short time.
