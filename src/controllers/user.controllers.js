@@ -9,6 +9,15 @@ import ApiResponse from "../utils/apiResponse.js";
 // cloudinary
 import uploadOnCloudinary from "../utils/cloudinary.js";
 
+/*
+TESTING Controller:
+
+*/
+
+const testUserController = catchAsync(async (req, res) => {
+  res.send("<h1>This is a testing controller</h1>");
+});
+
 const register = catchAsync(async (req, res) => {
   /*
   STEPS: 
@@ -149,10 +158,16 @@ const login = catchAsync(async (req, res) => {
   user.refreshToken = refreshToken;
   await user.save({ validateBeforeSave: false });
 
-  //before sending user info, we must remove 'password' and 'refreshToke' from the response
-  const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken"
-  );
+  // // before sending user info, we must remove 'password' and 'refreshToke' from the response
+
+  // const loggedInUser = await User.findById(user._id).select(
+  //   "-password -refreshToken"
+  // );
+  // **problem is: we have to send query request again to the db, and it costs.
+
+  // OR, just set fields to undefined
+  user.password = undefined;
+  user.refreshToken = undefined;
 
   const cookieOptions = {
     httpOnly: true,
@@ -171,11 +186,53 @@ const login = catchAsync(async (req, res) => {
       new ApiResponse(
         200,
         {
-          user: loggedInUser,
+          // user: loggedInUser,
+          user,
+          // It is good practice to send the tokens to the userend so that they can save in the localStorage, or
+          // for mobile app, tokens don't get saved automatically.
+          accessToken,
+          refreshToken,
         },
         "Log-in is successful"
       )
     );
 });
 
-export { register, login };
+const logout = catchAsync(async (req, res) => {
+  /*
+  STEPS:
+  1. clear refreshtoken from database
+      - Create 'protect' middleware to set "req.user = user"
+      - Using 'protect' middleware, veryfy if user is loggedIn and get user credentials
+
+  2. clear tokens from cookies during sending the cookies in the response
+  */
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $unset: {
+        refreshToken: "", // It is update operator; what value we assign wiil be saved in the db.
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true, // For the development case, we cannot send request if 'secure' is true.
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 3600 * 1000
+    ),
+  };
+
+  return res
+    .status(200)
+    .clearCookie("accessToken", cookieOptions)
+    .clearCookie("refreshToken", cookieOptions)
+    .json(new ApiResponse(200, {}, "Log out successfully!"));
+});
+
+export { testUserController, register, login, logout };

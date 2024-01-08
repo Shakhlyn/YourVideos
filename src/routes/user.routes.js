@@ -2,9 +2,20 @@ import express from "express";
 
 import upload from "../middlewares/multer.middleware.js";
 
-import { register, login } from "../controllers/user.controllers.js";
+import { protect } from "../middlewares/auth.middleware.js";
+
+import {
+  register,
+  login,
+  logout,
+  testUserController,
+} from "../controllers/user.controllers.js";
 
 const router = express.Router();
+
+// testing route
+router.route("/testing").get(protect, testUserController);
+// testing route
 
 router.route("/register").post(
   upload.fields([
@@ -21,5 +32,6 @@ router.route("/register").post(
 );
 
 router.route("/login").post(login);
+router.route("/logout").post(protect, logout);
 
 export default router;
